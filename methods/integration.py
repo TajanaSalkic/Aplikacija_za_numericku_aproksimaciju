@@ -4,10 +4,10 @@ Metode Numeričke Integracije
 
 Ovaj modul implementira metode za numeričko računanje određenog integrala:
 
-1. Trapezna metoda - Bonus metoda
-2. Simpsonova metoda (1/3) - Rađeno na nastavi
-3. Romberg integracija - Bonus metoda (nije rađena na nastavi)
-4. Gaussova kvadratura - Rađeno na nastavi
+1. Trapezna metoda
+2. Simpsonova metoda (1/3)
+3. Romberg integracija 
+4. Gaussova kvadratura
 
 Sve metode vraćaju detaljne korake za step-by-step prikaz.
 """

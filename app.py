@@ -50,9 +50,7 @@ with col1:
     - Stepena (y = Ax^B)
     - Eksponencijalna (y = Ae^Bx)
     - Logaritamska (y = a + b·ln(x))
-    - Hiperbolička (y = 1/(a+bx))
     - Racionalna (y = x/(a+bx))
-    - Korijen (y = a + b·√x)
     - Polinomijalna (stepen n)
 
     *Automatsko poređenje svih modela*
@@ -121,7 +119,6 @@ with col_t1:
     |-------|----------------|
     | $y = Ax^B$ | $\\ln(y) = \\ln(A) + B\\ln(x)$ |
     | $y = Ae^{Bx}$ | $\\ln(y) = \\ln(A) + Bx$ |
-    | $y = \\frac{1}{a+bx}$ | $\\frac{1}{y} = a + bx$ |
     | $y = \\frac{x}{a+bx}$ | $\\frac{x}{y} = a + bx$ |
     """)
 
@@ -187,7 +184,7 @@ Ova aplikacija je razvijena kao projektni zadatak iz predmeta
 
 #### Karakteristike:
 - 📐 **Metoda najmanjih kvadrata** sa linearizacijom nelinearnih modela
-- 📊 **8 metoda aproksimacije** - linearna i nelinearne
+- 📊 **6 metoda aproksimacije** - linearna i nelinearne
 - 📈 **Interaktivni grafovi** za vizualizaciju (Plotly)
 - 📝 **Step-by-step prikaz** svakog koraka rješavanja
 - 🏆 **Automatsko poređenje** i rangiranje modela po R²

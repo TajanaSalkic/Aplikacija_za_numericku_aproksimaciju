@@ -456,42 +456,6 @@ $$y = a + bX$$
 """
 
 
-def format_hyperbolic_regression_formulas() -> str:
-    """
-    Vraća LaTeX objašnjenje formula za hiperboličku aproksimaciju
-
-    Returns:
-        LaTeX string
-    """
-    return """
-## Hiperbolička Aproksimacija
-
-### Model:
-$$y = \\frac{1}{a + bx}$$
-
-### Linearizacija:
-Recipročna vrijednost:
-$$\\frac{1}{y} = a + bx$$
-
-Supstitucija: $Y = \\frac{1}{y}$
-
-Linearni model:
-$$Y = a + bx$$
-
-### Procedura:
-1. Transformiši: $Y_i = \\frac{1}{y_i}$
-2. Primijeni linearnu regresiju na $(x_i, Y_i)$
-3. Koeficijenti $a$ i $b$ su direktno iz regresije
-
-### Napomena:
-- $y$ vrijednosti ne smiju biti **nula**!
-
-### Primjene:
-- Michaelis-Menten kinetika enzima
-- Odziv sistema sa zasićenjem
-"""
-
-
 def format_rational_regression_formulas() -> str:
     """
     Vraća LaTeX objašnjenje formula za racionalnu aproksimaciju
@@ -526,42 +490,6 @@ $$Y = a + bx$$
 - Langmuir adsorpcija
 - Zasićenje kapaciteta
 - Procesna kinetika
-"""
-
-
-def format_sqrt_regression_formulas() -> str:
-    """
-    Vraća LaTeX objašnjenje formula za aproksimaciju kvadratnim korijenom
-
-    Returns:
-        LaTeX string
-    """
-    return """
-## Aproksimacija Kvadratnim Korijenom
-
-### Model:
-$$y = a + b \\cdot \\sqrt{x}$$
-
-### Linearizacija:
-Model je već u linearnom obliku!
-
-Supstitucija: $X = \\sqrt{x}$
-
-Linearni model:
-$$y = a + bX$$
-
-### Procedura:
-1. Transformiši: $X_i = \\sqrt{x_i}$
-2. Primijeni linearnu regresiju na $(X_i, y_i)$
-3. Koeficijenti $a$ i $b$ su direktno iz regresije
-
-### Napomena:
-- Sve $x$ vrijednosti moraju biti **nenegativne** ($x \\geq 0$)!
-
-### Primjene:
-- Fizički procesi sa korijenom
-- Vrijeme reakcije
-- Difuzijski procesi
 """
 
 

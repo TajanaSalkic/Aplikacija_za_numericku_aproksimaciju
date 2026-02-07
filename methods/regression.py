@@ -35,19 +35,9 @@ METODE APROKSIMACIJE:
       Već linearan oblik: Y = a + b·X, gdje je X = ln(x)
       - Bonus metoda
 
-   d) HIPERBOLIČKA APROKSIMACIJA
-      Model: y = 1/(a + bx)
-      Linearizacija: 1/y = a + bx
-      - Bonus metoda
-
-   e) RACIONALNA APROKSIMACIJA
+   d) RACIONALNA APROKSIMACIJA
       Model: y = x/(a + bx)
       Linearizacija: x/y = a + bx
-      - Bonus metoda
-
-   f) KVADRATNA KORIJEN APROKSIMACIJA
-      Model: y = a + b·√x
-      Već linearan oblik: Y = a + b·X, gdje je X = √x
       - Bonus metoda
 
 3. POLINOMIJALNA APROKSIMACIJA
@@ -166,6 +156,15 @@ def linear_regression(x_data: np.ndarray,
 
     # Korak 3: Rješavanje sistema - računanje koeficijenata
     denominator = N * sum_x2 - sum_x ** 2
+
+    if abs(denominator) < 1e-12:
+        return {
+            'a': None,
+            'b': None,
+            'error_message': 'Denominator je nula (sve x vrijednosti su jednake). Linearna regresija nije moguća.',
+            'steps': steps
+        }
+
     b = (N * sum_xy - sum_x * sum_y) / denominator
     a = (sum_y - b * sum_x) / N
 
@@ -225,6 +224,11 @@ def linear_regression(x_data: np.ndarray,
     else:
         std_error = 0
 
+    # SSE, MSE, RMSE
+    sse = float(ss_res)
+    mse = sse / N
+    rmse = np.sqrt(mse)
+
     steps.append({
         'step': 5,
         'title': 'Ocjena kvalitete modela',
@@ -234,6 +238,9 @@ def linear_regression(x_data: np.ndarray,
         'r_squared_formula': 'R² = 1 - SS_res/SS_tot',
         'r_squared_calculation': f'R² = 1 - {ss_res:.6f}/{ss_tot:.6f} = {r_squared:.6f}',
         'std_error': std_error,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'interpretation': interpret_r_squared(r_squared)
     })
 
@@ -243,6 +250,9 @@ def linear_regression(x_data: np.ndarray,
         'equation': f'y = {a:.6f} + {b:.6f}·x',
         'r_squared': r_squared,
         'std_error': std_error,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'y_predicted': y_pred.tolist(),
         'residuals': residuals.tolist(),
         'errors_percent': errors_percent,
@@ -362,6 +372,15 @@ def exponential_regression(x_data: np.ndarray,
 
     # Sistem jednačina: A·N + B·ΣX = ΣY i A·ΣX + B·ΣX² = ΣXY
     denominator = N * sum_X2 - sum_X ** 2
+
+    if abs(denominator) < 1e-12:
+        return {
+            'a': None,
+            'b': None,
+            'error_message': 'Denominator je nula (sve x vrijednosti su jednake). Eksponencijalna regresija nije moguća.',
+            'steps': steps
+        }
+
     B = (N * sum_XY - sum_X * sum_Y) / denominator
     A = (sum_Y - B * sum_X) / N
 
@@ -410,23 +429,13 @@ def exponential_regression(x_data: np.ndarray,
     y_pred = a * np.exp(b * x)
     residuals = y - y_pred
 
-    # Računanje greške u procentima
-    errors_percent = []
-    for i in range(N):
-        if y[i] != 0:
-            err = ((y_pred[i] - y[i]) / y[i]) * 100
-        else:
-            err = 0
-        errors_percent.append(err)
-
-    # Tabela poređenja
+    # Tabela poređenja (bez greške u procentima - linearizacija daje zanemarive rezidualne)
     comparison_table = []
     for i in range(N):
         comparison_table.append({
             'x': x[i],
             'Y (izmjereno)': y[i],
-            'y (aproksimacija)': y_pred[i],
-            'Greška (%)': errors_percent[i]
+            'y (aproksimacija)': y_pred[i]
         })
 
     # R² za originalne podatke
@@ -440,12 +449,15 @@ def exponential_regression(x_data: np.ndarray,
     ss_tot_lin = np.sum((Y - np.mean(Y)) ** 2)
     r_squared_linear = 1 - ss_res_lin / ss_tot_lin if ss_tot_lin != 0 else 1.0
 
+    # SSE, MSE, RMSE
+    sse = float(ss_res)
+    mse = sse / N
+    rmse = np.sqrt(mse)
+
     steps.append({
         'step': 4,
-        'title': 'Predviđene vrijednosti i greške',
-        'description': 'Greška (%) = (y_pred - Y) / Y × 100',
-        'comparison_table': comparison_table,
-        'errors_percent': errors_percent
+        'title': 'Predviđene vrijednosti',
+        'comparison_table': comparison_table
     })
 
     steps.append({
@@ -453,6 +465,9 @@ def exponential_regression(x_data: np.ndarray,
         'title': 'Ocjena kvalitete modela',
         'r_squared': r_squared,
         'r_squared_linear': r_squared_linear,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'interpretation': interpret_r_squared(r_squared)
     })
 
@@ -466,9 +481,10 @@ def exponential_regression(x_data: np.ndarray,
         'equation_alternative': f'y = {a:.6f}·{c:.6f}^x',
         'r_squared': r_squared,
         'r_squared_linear': r_squared_linear,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'y_predicted': y_pred.tolist(),
-        'residuals': residuals.tolist(),
-        'errors_percent': errors_percent,
         'steps': steps,
         'method': 'Eksponencijalna aproksimacija (linearizacija)'
     }
@@ -564,6 +580,15 @@ def power_regression(x_data: np.ndarray,
     sum_X2 = np.sum(X ** 2)
 
     denominator = N * sum_X2 - sum_X ** 2
+
+    if abs(denominator) < 1e-12:
+        return {
+            'a': None,
+            'b': None,
+            'error_message': 'Denominator je nula (sve ln(x) vrijednosti su jednake). Stepena regresija nije moguća.',
+            'steps': steps
+        }
+
     B = (N * sum_XY - sum_X * sum_Y) / denominator
     A = (sum_Y - B * sum_X) / N
 
@@ -640,6 +665,11 @@ def power_regression(x_data: np.ndarray,
     ss_tot_lin = np.sum((Y - np.mean(Y)) ** 2)
     r_squared_linear = 1 - ss_res_lin / ss_tot_lin if ss_tot_lin != 0 else 1.0
 
+    # SSE, MSE, RMSE
+    sse = float(ss_res)
+    mse = sse / N
+    rmse = np.sqrt(mse)
+
     steps.append({
         'step': 4,
         'title': 'Predviđene vrijednosti i greške',
@@ -653,6 +683,9 @@ def power_regression(x_data: np.ndarray,
         'title': 'Ocjena kvalitete modela',
         'r_squared': r_squared,
         'r_squared_linear': r_squared_linear,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'interpretation': interpret_r_squared(r_squared)
     })
 
@@ -662,6 +695,9 @@ def power_regression(x_data: np.ndarray,
         'equation': f'y = {a:.6f}·x^{b:.6f}',
         'r_squared': r_squared,
         'r_squared_linear': r_squared_linear,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'y_predicted': y_pred.tolist(),
         'residuals': residuals.tolist(),
         'errors_percent': errors_percent,
@@ -824,6 +860,11 @@ def polynomial_regression(x_data: np.ndarray,
     else:
         r_squared_adj = r_squared
 
+    # SSE, MSE, RMSE
+    sse = float(ss_res)
+    mse = sse / N
+    rmse = np.sqrt(mse)
+
     # Računanje greške za svaku tačku (kao na slajdu 109-112)
     errors_percent = []
     for i in range(N):
@@ -856,6 +897,9 @@ def polynomial_regression(x_data: np.ndarray,
         'title': 'Ocjena kvalitete modela',
         'r_squared': r_squared,
         'r_squared_adjusted': r_squared_adj,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'interpretation': interpret_r_squared(r_squared)
     })
 
@@ -866,6 +910,9 @@ def polynomial_regression(x_data: np.ndarray,
         'equation': format_polynomial_professor(coefficients),
         'r_squared': r_squared,
         'r_squared_adjusted': r_squared_adj,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'y_predicted': y_pred.tolist(),
         'residuals': residuals.tolist(),
         'errors_percent': errors_percent,
@@ -985,6 +1032,15 @@ def logarithmic_regression(x_data: np.ndarray,
     sum_X2 = np.sum(X ** 2)
 
     denominator = N * sum_X2 - sum_X ** 2
+
+    if abs(denominator) < 1e-12:
+        return {
+            'a': None,
+            'b': None,
+            'error_message': 'Denominator je nula (sve ln(x) vrijednosti su jednake). Logaritamska regresija nije moguća.',
+            'steps': steps
+        }
+
     b = (N * sum_XY - sum_X * sum_Y) / denominator
     a = (sum_Y - b * sum_X) / N
 
@@ -1040,6 +1096,11 @@ def logarithmic_regression(x_data: np.ndarray,
     ss_tot = np.sum((y - np.mean(y)) ** 2)
     r_squared = 1 - ss_res / ss_tot if ss_tot != 0 else 1.0
 
+    # SSE, MSE, RMSE
+    sse = float(ss_res)
+    mse = sse / N
+    rmse = np.sqrt(mse)
+
     steps.append({
         'step': 4,
         'title': 'Predviđene vrijednosti i greške',
@@ -1052,6 +1113,9 @@ def logarithmic_regression(x_data: np.ndarray,
         'step': 5,
         'title': 'Ocjena kvalitete modela',
         'r_squared': r_squared,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'interpretation': interpret_r_squared(r_squared)
     })
 
@@ -1060,6 +1124,9 @@ def logarithmic_regression(x_data: np.ndarray,
         'b': b,
         'equation': f'y = {a:.6f} + {b:.6f}·ln(x)',
         'r_squared': r_squared,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'y_predicted': y_pred.tolist(),
         'residuals': residuals.tolist(),
         'errors_percent': errors_percent,
@@ -1068,198 +1135,46 @@ def logarithmic_regression(x_data: np.ndarray,
     }
 
 
-def hyperbolic_regression(x_data: np.ndarray,
-                          y_data: np.ndarray) -> Dict:
-    """
-    Hiperbolička Aproksimacija
-    ==========================
-
-    MODEL:
-    ------
-    y = 1/(a + bx)
-
-    LINEARIZACIJA:
-    --------------
-    1/y = a + bx
-
-    Supstitucija: Y = 1/y
-    Linearni model: Y = a + bx
-
-    PROCEDURA:
-    ----------
-    1. Transformiši: Y = 1/y
-    2. Primijeni linearnu regresiju na (x, Y)
-    3. Koeficijenti a i b su direktno iz regresije
-
-    Args:
-        x_data: Nezavisna varijabla
-        y_data: Zavisna varijabla (mora biti != 0)
-
-    Returns:
-        Dict sa parametrima i koracima
-    """
-    x = np.array(x_data, dtype=float)
-    y = np.array(y_data, dtype=float)
-    N = len(x)
-
-    steps = []
-
-    if np.any(y == 0):
-        return {
-            'a': None,
-            'b': None,
-            'error_message': 'y vrijednosti ne smiju biti nula za hiperboličku aproksimaciju!',
-            'steps': []
-        }
-
-    # Korak 1: Transformacija Y = 1/y
-    Y = 1 / y
-
-    transform_table = []
-    for i in range(N):
-        transform_table.append({
-            'x': x[i],
-            'y': y[i],
-            'Y=1/y': Y[i]
-        })
-
-    steps.append({
-        'step': 1,
-        'title': 'Linearizacija - recipročna transformacija',
-        'model_original': 'y = 1/(a + bx)',
-        'linearization': '1/y = a + bx',
-        'substitution': 'Y = 1/y',
-        'model_linearized': 'Y = a + bx',
-        'transform_table': transform_table
-    })
-
-    # Korak 2: Linearna regresija na (x, Y)
-    sum_x = np.sum(x)
-    sum_Y = np.sum(Y)
-    sum_xY = np.sum(x * Y)
-    sum_x2 = np.sum(x ** 2)
-
-    denominator = N * sum_x2 - sum_x ** 2
-    b = (N * sum_xY - sum_x * sum_Y) / denominator
-    a = (sum_Y - b * sum_x) / N
-
-    steps.append({
-        'step': 2,
-        'title': 'Linearna regresija na transformisanim podacima',
-        'sums': {
-            'N': N,
-            'Σx': f'{sum_x:.6f}',
-            'ΣY': f'{sum_Y:.6f}',
-            'ΣxY': f'{sum_xY:.6f}',
-            'Σx²': f'{sum_x2:.6f}'
-        },
-        'system': [
-            f'a·{N} + b·{sum_x:.4f} = {sum_Y:.4f}',
-            f'a·{sum_x:.4f} + b·{sum_x2:.4f} = {sum_xY:.4f}'
-        ],
-        'solution': {'a': a, 'b': b},
-        'equation': f'Y = {a:.6f} + {b:.6f}·x'
-    })
-
-    steps.append({
-        'step': 3,
-        'title': 'Konačni rezultat',
-        'final_equation': f'y = 1/({a:.6f} + {b:.6f}·x)',
-        'description': 'Parametri a i b su direktno iz linearne regresije'
-    })
-
-    # Predviđene vrijednosti
-    y_pred = 1 / (a + b * x)
-    residuals = y - y_pred
-
-    # Računanje greške u procentima
-    errors_percent = []
-    for i in range(N):
-        if y[i] != 0:
-            err = ((y_pred[i] - y[i]) / y[i]) * 100
-        else:
-            err = 0
-        errors_percent.append(err)
-
-    # Tabela poređenja
-    comparison_table = []
-    for i in range(N):
-        comparison_table.append({
-            'x': x[i],
-            'Y (izmjereno)': y[i],
-            'y (aproksimacija)': y_pred[i],
-            'Greška (%)': errors_percent[i]
-        })
-
-    ss_res = np.sum(residuals ** 2)
-    ss_tot = np.sum((y - np.mean(y)) ** 2)
-    r_squared = 1 - ss_res / ss_tot if ss_tot != 0 else 1.0
-
-    # R² za linearizirane podatke
-    Y_pred = a + b * x
-    ss_res_lin = np.sum((Y - Y_pred) ** 2)
-    ss_tot_lin = np.sum((Y - np.mean(Y)) ** 2)
-    r_squared_linear = 1 - ss_res_lin / ss_tot_lin if ss_tot_lin != 0 else 1.0
-
-    steps.append({
-        'step': 4,
-        'title': 'Predviđene vrijednosti i greške',
-        'description': 'Greška (%) = (y_pred - Y) / Y × 100',
-        'comparison_table': comparison_table,
-        'errors_percent': errors_percent
-    })
-
-    steps.append({
-        'step': 5,
-        'title': 'Ocjena kvalitete modela',
-        'r_squared': r_squared,
-        'r_squared_linear': r_squared_linear,
-        'interpretation': interpret_r_squared(r_squared)
-    })
-
-    return {
-        'a': a,
-        'b': b,
-        'equation': f'y = 1/({a:.6f} + {b:.6f}·x)',
-        'r_squared': r_squared,
-        'r_squared_linear': r_squared_linear,
-        'y_predicted': y_pred.tolist(),
-        'residuals': residuals.tolist(),
-        'errors_percent': errors_percent,
-        'steps': steps,
-        'method': 'Hiperbolička aproksimacija'
-    }
-
-
 def rational_regression(x_data: np.ndarray,
-                        y_data: np.ndarray) -> Dict:
+                        y_data: np.ndarray,
+                        r: int = 1,
+                        s: int = 1,
+                        fix_c0_to_one: bool = True) -> Dict:
     """
-    Racionalna Aproksimacija
-    ========================
+    Racionalna Aproksimacija (OPŠTI MODEL)
+    =====================================
 
-    MODEL:
-    ------
-    y = x/(a + bx)
+    OPŠTI MODEL:
+    ------------
+        φ(x) = (b0 + b1 x + ... + br x^r) / (c0 + c1 x + ... + cs x^s)
 
-    LINEARIZACIJA:
-    --------------
-    x/y = a + bx
+    Skaliranje:
+        Razlomak je skalabilan -> broj nezavisnih parametara je r+s+1.
+        Zbog toga se fiksira jedan koeficijent (najčešće c0=1).
 
-    Supstitucija: Y = x/y
-    Linearni model: Y = a + bx
+    Ako fix_c0_to_one=True (preporučeno):
+    -------------------------------------
+        φ(x) = (b0 + b1 x + ... + br x^r) / (1 + c1 x + ... + cs x^s)
 
-    PROCEDURA:
-    ----------
-    1. Transformiši: Y = x/y
-    2. Primijeni linearnu regresiju na (x, Y)
-    3. Koeficijenti a i b su direktno iz regresije
+    Linearni LS oblik:
+    ------------------
+        y ≈ P_r(x)/Q_s(x)
+        y(1 + c1 x + ... + cs x^s) ≈ b0 + b1 x + ... + br x^r
+
+        => b0 + b1 x + ... + br x^r - y*c1 x - ... - y*cs x^s ≈ y
+
+    Nepoznate:
+        θ = [b0..br, c1..cs]  (ukupno r+1+s parametara)
 
     Args:
-        x_data: Nezavisna varijabla
-        y_data: Zavisna varijabla (mora biti != 0)
+        x_data: niz x vrijednosti
+        y_data: niz y vrijednosti
+        r: stepen brojnika (numerator) P_r
+        s: stepen nazivnika (denominator) Q_s
+        fix_c0_to_one: ako True fiksira c0=1 (preporuka; odgovara teoriji)
 
     Returns:
-        Dict sa parametrima i koracima
+        Dict sa koeficijentima, jednadžbom, R², koracima itd.
     """
     x = np.array(x_data, dtype=float)
     y = np.array(y_data, dtype=float)
@@ -1267,75 +1182,78 @@ def rational_regression(x_data: np.ndarray,
 
     steps = []
 
-    if np.any(y == 0):
+    if N == 0:
+        return {'error_message': 'Prazni ulazni podaci!', 'steps': []}
+
+    if r < 0 or s < 0:
+        return {'error_message': 'Stepeni r i s moraju biti >= 0!', 'steps': []}
+
+    if not fix_c0_to_one:
         return {
-            'a': None,
-            'b': None,
-            'error_message': 'y vrijednosti ne smiju biti nula za racionalnu aproksimaciju!',
+            'error_message': 'Ova implementacija je predviđena za fiksiranje c0=1 (da bi broj parametara bio r+s+1).',
             'steps': []
         }
 
-    # Korak 1: Transformacija Y = x/y
-    Y = x / y
+    # Formiranje matrice A i vektora B za least squares A·θ ≈ y
+    # Kolone: b0..br -> x^0..x^r
+    # Kolone: c1..cs -> -y*x^1 .. -y*x^s
+    cols = []
+    col_names = []
 
-    transform_table = []
-    for i in range(N):
-        transform_table.append({
-            'x': x[i],
-            'y': y[i],
-            'Y=x/y': Y[i]
-        })
+    for k in range(r + 1):
+        cols.append(x ** k)
+        col_names.append(f'b{k}·x^{k}')
+
+    for k in range(1, s + 1):
+        cols.append(-(y * (x ** k)))
+        col_names.append(f'c{k}·(-y·x^{k})')
+
+    A = np.column_stack(cols)  # shape: (N, r+1+s)
+    B = y.copy()
 
     steps.append({
         'step': 1,
-        'title': 'Linearizacija - transformacija x/y',
-        'model_original': 'y = x/(a + bx)',
-        'linearization': 'x/y = a + bx',
-        'substitution': 'Y = x/y',
-        'model_linearized': 'Y = a + bx',
-        'transform_table': transform_table
+        'title': 'Formiranje LS sistema (c0 = 1)',
+        'description': 'Postavljamo A·θ ≈ y iz: y(1+c1x+...+csx^s) ≈ b0+b1x+...+brx^r',
+        'N': N,
+        'r': r,
+        's': s,
+        'num_parameters': (r + 1 + s),
+        'columns': col_names
     })
 
-    # Korak 2: Linearna regresija na (x, Y)
-    sum_x = np.sum(x)
-    sum_Y = np.sum(Y)
-    sum_xY = np.sum(x * Y)
-    sum_x2 = np.sum(x ** 2)
+    # Least squares rješenje
+    theta, residuals_ls, rank, singular_values = np.linalg.lstsq(A, B, rcond=None)
 
-    denominator = N * sum_x2 - sum_x ** 2
-    b = (N * sum_xY - sum_x * sum_Y) / denominator
-    a = (sum_Y - b * sum_x) / N
+    b = theta[:r + 1]               # b0..br
+    c_rest = theta[r + 1:]          # c1..cs
+    c0 = 1.0
 
     steps.append({
         'step': 2,
-        'title': 'Linearna regresija na transformisanim podacima',
-        'sums': {
-            'N': N,
-            'Σx': f'{sum_x:.6f}',
-            'ΣY': f'{sum_Y:.6f}',
-            'ΣxY': f'{sum_xY:.6f}',
-            'Σx²': f'{sum_x2:.6f}'
-        },
-        'system': [
-            f'a·{N} + b·{sum_x:.4f} = {sum_Y:.4f}',
-            f'a·{sum_x:.4f} + b·{sum_x2:.4f} = {sum_xY:.4f}'
-        ],
-        'solution': {'a': a, 'b': b},
-        'equation': f'Y = {a:.6f} + {b:.6f}·x'
+        'title': 'Rješenje least squares sistema',
+        'description': 'Dobijamo koeficijente b0..br i c1..cs (c0 je fiksiran na 1)',
+        'b_coeffs': {f'b{k}': float(b[k]) for k in range(r + 1)},
+        'c_coeffs': {f'c0': c0, **{f'c{k}': float(c_rest[k-1]) for k in range(1, s + 1)}},
+        'rank': int(rank)
     })
 
-    steps.append({
-        'step': 3,
-        'title': 'Konačni rezultat',
-        'final_equation': f'y = x/({a:.6f} + {b:.6f}·x)',
-        'description': 'Parametri a i b su direktno iz linearne regresije'
-    })
+    # Predikcija y_pred = P(x)/Q(x)
+    P = np.zeros_like(x)
+    for k in range(r + 1):
+        P += b[k] * (x ** k)
 
-    # Predviđene vrijednosti
-    y_pred = x / (a + b * x)
+    Q = np.ones_like(x) * c0
+    for k in range(1, s + 1):
+        Q += c_rest[k - 1] * (x ** k)
+
+    eps = 1e-12
+    Q_safe = np.where(np.abs(Q) < eps, np.sign(Q) * eps, Q)
+
+    y_pred = P / Q_safe
     residuals = y - y_pred
 
-    # Računanje greške u procentima
+    # Greške u procentima
     errors_percent = []
     for i in range(N):
         if y[i] != 0:
@@ -1344,7 +1262,6 @@ def rational_regression(x_data: np.ndarray,
             err = 0
         errors_percent.append(err)
 
-    # Tabela poređenja
     comparison_table = []
     for i in range(N):
         comparison_table.append({
@@ -1354,173 +1271,18 @@ def rational_regression(x_data: np.ndarray,
             'Greška (%)': errors_percent[i]
         })
 
-    ss_res = np.sum(residuals ** 2)
-    ss_tot = np.sum((y - np.mean(y)) ** 2)
+    # R²
+    ss_res = float(np.sum(residuals ** 2))
+    ss_tot = float(np.sum((y - np.mean(y)) ** 2))
     r_squared = 1 - ss_res / ss_tot if ss_tot != 0 else 1.0
 
-    # R² za linearizirane podatke
-    Y_pred = a + b * x
-    ss_res_lin = np.sum((Y - Y_pred) ** 2)
-    ss_tot_lin = np.sum((Y - np.mean(Y)) ** 2)
-    r_squared_linear = 1 - ss_res_lin / ss_tot_lin if ss_tot_lin != 0 else 1.0
-
-    steps.append({
-        'step': 4,
-        'title': 'Predviđene vrijednosti i greške',
-        'description': 'Greška (%) = (y_pred - Y) / Y × 100',
-        'comparison_table': comparison_table,
-        'errors_percent': errors_percent
-    })
-
-    steps.append({
-        'step': 5,
-        'title': 'Ocjena kvalitete modela',
-        'r_squared': r_squared,
-        'r_squared_linear': r_squared_linear,
-        'interpretation': interpret_r_squared(r_squared)
-    })
-
-    return {
-        'a': a,
-        'b': b,
-        'equation': f'y = x/({a:.6f} + {b:.6f}·x)',
-        'r_squared': r_squared,
-        'r_squared_linear': r_squared_linear,
-        'y_predicted': y_pred.tolist(),
-        'residuals': residuals.tolist(),
-        'errors_percent': errors_percent,
-        'steps': steps,
-        'method': 'Racionalna aproksimacija'
-    }
-
-
-def sqrt_regression(x_data: np.ndarray,
-                    y_data: np.ndarray) -> Dict:
-    """
-    Aproksimacija Kvadratnim Korijenom
-    ===================================
-
-    MODEL:
-    ------
-    y = a + b·√x
-
-    LINEARIZACIJA:
-    --------------
-    Model je već u linearnom obliku!
-    Supstitucija: X = √x
-    Linearni model: y = a + b·X
-
-    PROCEDURA:
-    ----------
-    1. Transformiši: X = √x
-    2. Primijeni linearnu regresiju na (X, y)
-    3. Koeficijenti su direktno a i b
-
-    Args:
-        x_data: Nezavisna varijabla (mora biti >= 0)
-        y_data: Zavisna varijabla
-
-    Returns:
-        Dict sa parametrima i koracima
-    """
-    x = np.array(x_data, dtype=float)
-    y = np.array(y_data, dtype=float)
-    N = len(x)
-
-    steps = []
-
-    if np.any(x < 0):
-        return {
-            'a': None,
-            'b': None,
-            'error_message': 'x vrijednosti moraju biti >= 0 za aproksimaciju kvadratnim korijenom!',
-            'steps': []
-        }
-
-    # Korak 1: Transformacija X = √x
-    X = np.sqrt(x)
-
-    transform_table = []
-    for i in range(N):
-        transform_table.append({
-            'x': x[i],
-            'X=√x': X[i],
-            'y': y[i]
-        })
-
-    steps.append({
-        'step': 1,
-        'title': 'Transformacija x varijable',
-        'model_original': 'y = a + b·√x',
-        'substitution': 'X = √x',
-        'model_linearized': 'y = a + b·X (već linearan oblik)',
-        'transform_table': transform_table
-    })
-
-    # Korak 2: Linearna regresija na (X, y)
-    sum_X = np.sum(X)
-    sum_Y = np.sum(y)
-    sum_XY = np.sum(X * y)
-    sum_X2 = np.sum(X ** 2)
-
-    denominator = N * sum_X2 - sum_X ** 2
-    b = (N * sum_XY - sum_X * sum_Y) / denominator
-    a = (sum_Y - b * sum_X) / N
-
-    steps.append({
-        'step': 2,
-        'title': 'Linearna regresija na transformisanim podacima',
-        'sums': {
-            'N': N,
-            'ΣX': f'{sum_X:.6f}',
-            'Σy': f'{sum_Y:.6f}',
-            'ΣXy': f'{sum_XY:.6f}',
-            'ΣX²': f'{sum_X2:.6f}'
-        },
-        'system': [
-            f'a·{N} + b·{sum_X:.4f} = {sum_Y:.4f}',
-            f'a·{sum_X:.4f} + b·{sum_X2:.4f} = {sum_XY:.4f}'
-        ],
-        'solution': {'a': a, 'b': b},
-        'equation': f'y = {a:.6f} + {b:.6f}·X'
-    })
+    # SSE, MSE, RMSE
+    sse = float(ss_res)
+    mse = sse / N
+    rmse = np.sqrt(mse)
 
     steps.append({
         'step': 3,
-        'title': 'Konačni rezultat',
-        'final_equation': f'y = {a:.6f} + {b:.6f}·√x',
-        'description': 'Koeficijenti su direktno iz linearne regresije'
-    })
-
-    # Predviđene vrijednosti
-    y_pred = a + b * np.sqrt(x)
-    residuals = y - y_pred
-
-    # Računanje greške u procentima
-    errors_percent = []
-    for i in range(N):
-        if y[i] != 0:
-            err = ((y_pred[i] - y[i]) / y[i]) * 100
-        else:
-            err = 0
-        errors_percent.append(err)
-
-    # Tabela poređenja
-    comparison_table = []
-    for i in range(N):
-        comparison_table.append({
-            'x': x[i],
-            'Y (izmjereno)': y[i],
-            'y (aproksimacija)': y_pred[i],
-            'Greška (%)': errors_percent[i]
-        })
-
-    ss_res = np.sum(residuals ** 2)
-    ss_tot = np.sum((y - np.mean(y)) ** 2)
-    r_squared = 1 - ss_res / ss_tot if ss_tot != 0 else 1.0
-
-    steps.append({
-        'step': 4,
         'title': 'Predviđene vrijednosti i greške',
         'description': 'Greška (%) = (y_pred - Y) / Y × 100',
         'comparison_table': comparison_table,
@@ -1528,22 +1290,58 @@ def sqrt_regression(x_data: np.ndarray,
     })
 
     steps.append({
-        'step': 5,
+        'step': 4,
         'title': 'Ocjena kvalitete modela',
         'r_squared': r_squared,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'interpretation': interpret_r_squared(r_squared)
     })
 
+    # Formatiranje jednačine
+    def poly_str(coefs: np.ndarray) -> str:
+        terms = []
+        for k, ck in enumerate(coefs):
+            if abs(ck) < 1e-12:
+                continue
+            if k == 0:
+                terms.append(f'{ck:.6f}')
+            elif k == 1:
+                terms.append(f'{ck:.6f}·x')
+            else:
+                terms.append(f'{ck:.6f}·x^{k}')
+        return ' + '.join(terms) if terms else '0'
+
+    numerator_str = poly_str(b)
+
+    denom_terms = ['1']
+    for k in range(1, s + 1):
+        ck = c_rest[k - 1]
+        if abs(ck) < 1e-12:
+            continue
+        if k == 1:
+            denom_terms.append(f'{ck:.6f}·x')
+        else:
+            denom_terms.append(f'{ck:.6f}·x^{k}')
+    denominator_str = ' + '.join(denom_terms)
+
+    equation = f'y = ({numerator_str}) / ({denominator_str})'
+
     return {
-        'a': a,
-        'b': b,
-        'equation': f'y = {a:.6f} + {b:.6f}·√x',
+        'b': b.tolist(),                 # b0..br
+        'c0': 1.0,
+        'c_rest': c_rest.tolist(),       # c1..cs
+        'equation': equation,
         'r_squared': r_squared,
+        'sse': sse,
+        'mse': mse,
+        'rmse': rmse,
         'y_predicted': y_pred.tolist(),
         'residuals': residuals.tolist(),
         'errors_percent': errors_percent,
         'steps': steps,
-        'method': 'Aproksimacija kvadratnim korijenom'
+        'method': f'Racionalna aproksimacija (opšti model, r={r}, s={s}, c0=1)'
     }
 
 
@@ -1590,17 +1388,9 @@ def compare_regression_models(x_data: np.ndarray,
     if np.all(x > 0):
         results['Logaritamska (y=a+b·ln(x))'] = logarithmic_regression(x, y)
 
-    # 6. Hiperbolička (zahtijeva y != 0)
-    if not np.any(y == 0):
-        results['Hiperbolička (y=1/(a+bx))'] = hyperbolic_regression(x, y)
-
-    # 7. Racionalna (zahtijeva y != 0)
+    # 6. Racionalna (zahtijeva y != 0)
     if not np.any(y == 0):
         results['Racionalna (y=x/(a+bx))'] = rational_regression(x, y)
-
-    # 8. Kvadratni korijen (zahtijeva x >= 0)
-    if np.all(x >= 0):
-        results['Korijen (y=a+b·√x)'] = sqrt_regression(x, y)
 
     # Sumarno poređenje - filtriranje uspješnih modela
     summary = []
@@ -1673,28 +1463,12 @@ def get_all_approximation_methods() -> List[Dict]:
             'description': 'Logaritamske veze i saturacija'
         },
         {
-            'name': 'Hiperbolička aproksimacija',
-            'model': 'y = 1/(a + bx)',
-            'function': 'hyperbolic_regression',
-            'linearization': '1/y = a + bx',
-            'requirements': 'y ≠ 0',
-            'description': 'Michaelis-Menten i slične kinetike'
-        },
-        {
-            'name': 'Racionalna aproksimacija',
-            'model': 'y = x/(a + bx)',
+            'name': 'Racionalna aproksimacija (opšti model)',
+            'model': 'φ(x) = (b0 + b1x + ... + brx^r) / (1 + c1x + ... + csx^s)',
             'function': 'rational_regression',
-            'linearization': 'x/y = a + bx',
-            'requirements': 'y ≠ 0',
-            'description': 'Langmuir adsorpcija'
-        },
-        {
-            'name': 'Aproksimacija kvadratnim korijenom',
-            'model': 'y = a + b·√x',
-            'function': 'sqrt_regression',
-            'linearization': 'Y = a + bX, X = √x',
-            'requirements': 'x ≥ 0',
-            'description': 'Procesi sa korijenom'
+            'linearization': 'y(1+c1x+...+csx^s) ≈ b0+b1x+...+brx^r  (LS sistem A·θ≈y)',
+            'requirements': 'Preporuka: dovoljno tačaka N > (r+1+s)',
+            'description': 'Opšta racionalna funkcija uz fiksiranje c0=1 (r+s+1 parametara)',
         },
         {
             'name': 'Polinomijalna aproksimacija',

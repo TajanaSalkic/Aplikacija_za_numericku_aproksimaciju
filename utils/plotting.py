@@ -395,9 +395,7 @@ def plot_regression(x_data: np.ndarray, y_data: np.ndarray,
     - Stepena: y = A*x^B
     - Eksponencijalna: y = A*e^(Bx)
     - Logaritamska: y = a + b*ln(x)
-    - Hiperbolička: y = 1/(a + bx)
     - Racionalna: y = x/(a + bx)
-    - Korijen: y = a + b*sqrt(x)
     - Polinomijalna: y = a0 + a1*x + a2*x^2 + ...
 
     Args:
@@ -420,9 +418,9 @@ def plot_regression(x_data: np.ndarray, y_data: np.ndarray,
     ))
 
     # Fitovana linija/krivulja
-    # Za logaritamske i korijen funkcije, izbjegavaj x <= 0
+    # Za logaritamske i stepene funkcije, izbjegavaj x <= 0
     x_min = max(min(x_data), 0.001) if any(k in result.get('method', '').lower()
-                                            for k in ['logaritam', 'korijen', 'sqrt', 'stepena', 'power']) else min(x_data)
+                                            for k in ['logaritam', 'stepena', 'power']) else min(x_data)
     x_fit = np.linspace(x_min, max(x_data), 200)
 
     method = result.get('method', '').lower()
@@ -451,12 +449,6 @@ def plot_regression(x_data: np.ndarray, y_data: np.ndarray,
             if 'ln(x)' in equation or 'logaritam' in method:
                 # Logaritamska: y = a + b*ln(x)
                 y_fit = a + b * np.log(x_fit)
-            elif '√x' in equation or 'korijen' in method or 'sqrt' in method:
-                # Korijen: y = a + b*sqrt(x)
-                y_fit = a + b * np.sqrt(x_fit)
-            elif '1/(' in equation or 'hiperboli' in method:
-                # Hiperbolička: y = 1/(a + bx)
-                y_fit = 1 / (a + b * x_fit)
             elif 'x/(' in equation or 'racional' in method:
                 # Racionalna: y = x/(a + bx)
                 y_fit = x_fit / (a + b * x_fit)

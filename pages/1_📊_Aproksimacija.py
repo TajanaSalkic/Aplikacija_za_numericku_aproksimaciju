@@ -20,9 +20,7 @@ from methods.regression import (
     polynomial_regression,
     power_regression,
     logarithmic_regression,
-    hyperbolic_regression,
     rational_regression,
-    sqrt_regression,
     compare_regression_models,
     get_all_approximation_methods
 )
@@ -38,7 +36,7 @@ st.sidebar.header("⚙️ Postavke")
 
 # Izbor metode
 approximation_methods = {
-    "Linearna aproksimacija": {
+    "Metoda najmanjeg kvadrata": {
         "function": linear_regression,
         "model": "y = ax + b",
         "description": "Metoda najmanjih kvadrata za linearni model",
@@ -66,26 +64,12 @@ approximation_methods = {
         "requirements": "x > 0",
         "linearization": "y = a + b·X, gdje je X = ln(x)"
     },
-    "Hiperbolička aproksimacija": {
-        "function": hyperbolic_regression,
-        "model": "y = 1/(a + bx)",
-        "description": "Hiperbolička ovisnost (Michaelis-Menten)",
-        "requirements": "y ≠ 0",
-        "linearization": "1/y = a + bx"
-    },
     "Racionalna aproksimacija": {
         "function": rational_regression,
-        "model": "y = x/(a + bx)",
-        "description": "Racionalna funkcija (Langmuir)",
-        "requirements": "y ≠ 0",
-        "linearization": "x/y = a + bx"
-    },
-    "Aproksimacija korijenom": {
-        "function": sqrt_regression,
-        "model": "y = a + b·√x",
-        "description": "Aproksimacija sa kvadratnim korijenom",
-        "requirements": "x ≥ 0",
-        "linearization": "y = a + b·X, gdje je X = √x"
+        "model": "y = (b0 + b1x + ... + brx^r) / (1 + c1x + ... + csx^s)",
+        "description": "Opšti racionalni model P_r(x)/Q_s(x) (least squares, uz c0=1)",
+        "requirements": "Preporuka: N > (r + 1 + s); paziti da Q(x) ≠ 0",
+        "linearization": "y(1 + c1x + ... + csx^s) ≈ b0 + b1x + ... + brx^r (linearni LS)"
     },
     "Polinomijalna aproksimacija": {
         "function": polynomial_regression,
@@ -112,6 +96,11 @@ method = st.sidebar.selectbox(
 if method == "Polinomijalna aproksimacija":
     degree = st.sidebar.slider("Stepen polinoma:", 1, 10, 2)
 
+# Parametri za opštu racionalnu aproksimaciju
+if method == "Racionalna aproksimacija (opšta)":
+    r_num = st.sidebar.slider("Stepen brojnika r (P_r):", 0, 5, 1)
+    s_den = st.sidebar.slider("Stepen nazivnika s (Q_s):", 0, 5, 1)
+
 # Unos podataka
 st.sidebar.markdown("---")
 st.sidebar.subheader("📝 Unos Podataka")
@@ -123,11 +112,20 @@ data_input_method = st.sidebar.radio(
 
 # Predefinisani dataseti za različite tipove aproksimacije
 predefined_datasets = {
-    "Linearni trend": {
-        'x': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'y': [2.1, 4.0, 5.9, 8.1, 9.8, 12.1, 14.0, 15.9, 18.2, 19.9],
-        'description': 'Podaci sa približno linearnim trendom (y ≈ 2x)',
-        'suggested': 'Linearna aproksimacija'
+    "Metoda najmanjih kvadrata": {
+        "x": [0, 1.525, 3.050, 4.575, 6.10, 7.625, 9.150],
+        "y": [1.0, 0.8617, 0.7385, 0.6292, 0.5328, 0.4481, 0.3741],
+        "description": "Relativna gustina zraka ρ u funkciji visine h.",
+        "task_text": (
+            "*Relativna gustina zraka po visini*\n\n"
+            "**ZADATAK (postavka):** Relativna gustina zraka ρ je mjerena na različitim visinama h.\n\n"
+            "**Podaci:**\n"
+            "- h (km): 0, 1.525, 3.050, 4.575, 6.10, 7.625, 9.150\n"
+            "- ρ: 1.0000, 0.8617, 0.7385, 0.6292, 0.5328, 0.4481, 0.3741\n\n"
+            "**Zadatak:** Uraditi kvadratnu aproksimaciju metodom najmanjih kvadrata (polinom stepena 2) i odrediti ρ na **h = 10.5 km**."
+        ),
+        "suggested": "Metoda najmanjih kvadrata",
+        "solution_link": "https://www.scribd.com/document/968215224/NM-Chapter-4"
     },
     "Eksponencijalni rast": {
         'x': [0, 1, 2, 3, 4, 5],
@@ -141,17 +139,11 @@ predefined_datasets = {
         'description': 'Stepena funkcija (y ≈ x³)',
         'suggested': 'Stepena aproksimacija'
     },
-    "Logaritamska zavisnost": {
+    "Logaritamska aproksimacija": {
         'x': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         'y': [0.0, 0.7, 1.1, 1.4, 1.6, 1.8, 1.9, 2.1, 2.2, 2.3],
         'description': 'Logaritamski trend (y ≈ ln(x))',
         'suggested': 'Logaritamska aproksimacija'
-    },
-    "Kvadratni korijen": {
-        'x': [0, 1, 4, 9, 16, 25, 36, 49],
-        'y': [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
-        'description': 'Korijen funkcija (y ≈ √x)',
-        'suggested': 'Aproksimacija korijenom'
     },
     "Kvadratni trend": {
         'x': [1, 2, 3, 4, 5, 6, 7, 8],
@@ -163,7 +155,7 @@ predefined_datasets = {
         'x': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         'y': [0.5, 0.67, 0.75, 0.8, 0.83, 0.86, 0.88, 0.89, 0.9, 0.91],
         'description': 'Saturacija (Michaelis-Menten tip)',
-        'suggested': 'Hiperbolička ili racionalna aproksimacija'
+        'suggested': 'Racionalna aproksimacija'
     },
     "Rast populacije": {
         'x': [0, 1, 2, 3, 4, 5, 6],
@@ -194,6 +186,7 @@ predefined_datasets = {
 if data_input_method == "Predefinisani primjer":
     selected_dataset = st.sidebar.selectbox("Odaberite dataset:", list(predefined_datasets.keys()))
     dataset = predefined_datasets[selected_dataset]
+    task_text = dataset.get("task_text", None)
     x_data = np.array(dataset['x'])
     y_data = np.array(dataset['y'])
     st.sidebar.info(f"**Opis:** {dataset['description']}")
@@ -306,6 +299,11 @@ run_button = st.sidebar.button("🚀 Izračunaj", type="primary", use_container_
 
 # Glavni sadržaj
 st.markdown("---")
+if data_input_method == "Predefinisani primjer" and task_text:
+    st.subheader("🧾 Postavka zadatka")
+    st.markdown(task_text)
+    st.markdown(f"🔗 [Rješenje zadatka (link)]({dataset['solution_link']})")
+    st.markdown("---")
 
 # Prikaz informacija o metodi
 method_info = approximation_methods[method]
@@ -352,7 +350,7 @@ with st.expander("📖 Teorija - Metoda Najmanjih Kvadrata", expanded=False):
     | $y = Ae^{Bx}$ | $\ln(y) = \ln(A) + Bx$ | $Y = b + ax$ |
     | $y = a + b\ln(x)$ | Već linearan u $\ln(x)$ | $y = a + bX$ |
     | $y = 1/(a+bx)$ | $1/y = a + bx$ | $Y = a + bx$ |
-    | $y = x/(a+bx)$ | $x/y = a + bx$ | $Y = a + bx$ |
+    | $y = \\frac{P_r(x)}{Q_s(x)}$, $Q_s(x)=1+c_1x+...+c_sx^s$ | $y(1+c_1x+...+c_sx^s) \\approx P_r(x)$ | linearni LS sistem |
     | $y = a + b\sqrt{x}$ | Već linearan u $\sqrt{x}$ | $y = a + bX$ |
 
     ### R² - Koeficijent Determinacije
@@ -418,6 +416,10 @@ if run_button:
         # Pozovi odgovarajuću funkciju
         if method == "Polinomijalna aproksimacija":
             result = approximation_methods[method]["function"](x_data, y_data, degree)
+
+        elif method == "Racionalna aproksimacija (opšta)":
+            result = approximation_methods[method]["function"](x_data, y_data, r=r_num, s=s_den)
+
         else:
             result = approximation_methods[method]["function"](x_data, y_data)
 
@@ -462,6 +464,19 @@ if run_button:
                 st.markdown("**Koeficijenti:**")
                 for i, c in enumerate(result['coefficients']):
                     st.markdown(f"$a_{i}$ = {c:.6f}")
+                st.markdown(f"**c0** = {result['c0']:.6f}")
+                for i, val in enumerate(result['c_rest'], start=1):
+                    st.markdown(f"**c{i}** = {val:.6f}")
+
+        # Prikaz SSE, MSE, RMSE
+        if 'sse' in result:
+            col_e1, col_e2, col_e3 = st.columns(3)
+            with col_e1:
+                st.metric("SSE (Sum of Squared Errors)", f"{result['sse']:.6f}")
+            with col_e2:
+                st.metric("MSE (Mean Squared Error)", f"{result['mse']:.6f}")
+            with col_e3:
+                st.metric("RMSE (Root Mean Squared Error)", f"{result['rmse']:.6f}")
 
         # Interpretacija R²
         r2 = result['r_squared']
@@ -589,21 +604,35 @@ if run_button:
                     if 'r_squared_calculation' in step:
                         st.markdown(f"**Računanje:** {step['r_squared_calculation']}")
 
+                    if 'sse' in step:
+                        st.markdown(f"**SSE** (Sum of Squared Errors) = {step['sse']:.6f}")
+                    if 'mse' in step:
+                        st.markdown(f"**MSE** (Mean Squared Error) = {step['mse']:.6f}")
+                    if 'rmse' in step:
+                        st.markdown(f"**RMSE** (Root Mean Squared Error) = {step['rmse']:.6f}")
+
                     if 'interpretation' in step:
                         st.info(step['interpretation'])
 
         # Tabela predviđenih vrijednosti, reziduala i greške
         st.subheader("📋 Predviđene Vrijednosti i Reziduali")
 
-        pred_df = pd.DataFrame({
-            'x': x_data,
-            'y (stvarno)': y_data,
-            'ŷ (predviđeno)': result['y_predicted'],
-            'Rezidual (y - ŷ)': result.get('residuals', [y - yp for y, yp in zip(y_data, result['y_predicted'])]),
-            'Greška (%)': result.get('errors_percent', [((yp - y) / y * 100) if y != 0 else 0 for y, yp in zip(y_data, result['y_predicted'])])
-        })
-        pred_df['Rezidual (y - ŷ)'] = pred_df['Rezidual (y - ŷ)'].apply(lambda x: f"{x:.6f}")
-        pred_df['Greška (%)'] = pred_df['Greška (%)'].apply(lambda x: f"{x:.2f}")
+        if 'residuals' in result and 'errors_percent' in result:
+            pred_df = pd.DataFrame({
+                'x': x_data,
+                'y (stvarno)': y_data,
+                'ŷ (predviđeno)': result['y_predicted'],
+                'Rezidual (y - ŷ)': result['residuals'],
+                'Greška (%)': result['errors_percent']
+            })
+            pred_df['Rezidual (y - ŷ)'] = pred_df['Rezidual (y - ŷ)'].apply(lambda x: f"{x:.6f}")
+            pred_df['Greška (%)'] = pred_df['Greška (%)'].apply(lambda x: f"{x:.2f}")
+        else:
+            pred_df = pd.DataFrame({
+                'x': x_data,
+                'y (stvarno)': y_data,
+                'ŷ (predviđeno)': result['y_predicted']
+            })
         st.dataframe(pred_df, use_container_width=True, hide_index=True)
 
 # Info o svim metodama

@@ -9,7 +9,6 @@ Ovaj modul implementira metode za numeričko računanje derivacija:
 3. Central Difference (Centralna diferencija)
 4. Poređenje grešaka za različite h
 
-Sve metode su BONUS (nisu rađene na nastavi) sa detaljnim objašnjenjima.
 """
 
 import numpy as np
