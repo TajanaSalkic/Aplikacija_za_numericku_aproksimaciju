@@ -2,7 +2,7 @@
 Aplikacija za Numeričku Aproksimaciju
 =====================================
 
-Glavna Streamlit aplikacija koja demonstrira različite numeričke metode
+Glavna Streamlit aplikacija koja demonstrira metode numeričke aproksimacije
 sa detaljnim step-by-step objašnjenjima i interaktivnim vizualizacijama.
 
 Pokretanje: streamlit run app.py
@@ -26,12 +26,12 @@ st.markdown("""
 
 ## Dobrodošli!
 
-Ova aplikacija demonstrira različite **numeričke metode** sa detaljnim matematičkim
+Ova aplikacija demonstrira različite **metode numeričke aproksimacije** sa detaljnim matematičkim
 objašnjenjima, step-by-step prikazom rješavanja i interaktivnim grafovima.
 
 ### 📚 Implementirane Metode
 
-Koristite **bočnu navigaciju** za pristup pojedinim metodama:
+Koristite **bočnu navigaciju** za pristup pojedinim stranicama:
 
 """)
 
@@ -40,65 +40,140 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("""
-    #### 🔍 Traženje Nula Funkcije
-    - **Metoda Bisekcije** ✓
-    - **Newton-Raphson** ✓
-    - **Metoda Sekante** ✓
+    #### 📊 Aproksimacija Funkcija
+    **Metoda Najmanjih Kvadrata**
 
-    *Pronalaženje korijena jednačine f(x) = 0*
+    *Linearna aproksimacija:*
+    - Linearna regresija (y = ax + b)
+
+    *Nelinearne aproksimacije:*
+    - Stepena (y = Ax^B)
+    - Eksponencijalna (y = Ae^Bx)
+    - Logaritamska (y = a + b·ln(x))
+    - Hiperbolička (y = 1/(a+bx))
+    - Racionalna (y = x/(a+bx))
+    - Korijen (y = a + b·√x)
+    - Polinomijalna (stepen n)
+
+    *Automatsko poređenje svih modela*
     """)
 
 with col2:
     st.markdown("""
-    #### ∫ Numerička Integracija
-    - **Trapezna metoda** ✓
-    - **Simpsonova metoda** ✓
-    - **Romberg integracija** ✓
-    - **Gaussova kvadratura** ✓
+    #### ∫ Integracija iz Tablice
 
-    *Aproksimacija određenog integrala*
+    Numerička integracija kada je ulaz
+    tablica podataka (x, y).
+
+    **Direktna integracija:**
+    - Trapezna metoda
+    - Simpsonova metoda
+    - Kubna interpolacija
+
+    **Preko aproksimacije:**
+    - Aproksimiraj podatke
+    - Integriraj aproksimaciju
+
+    *Koristi se kada nemamo
+    eksplicitnu funkciju*
     """)
 
 with col3:
     st.markdown("""
-    #### ∂ Numerička Derivacija
-    - **Forward Difference** ✓
-    - **Backward Difference** ✓
-    - **Central Difference** ✓
-    - **Poređenje grešaka** ✓
+    #### ∂ Derivacija iz Tablice
 
-    *Aproksimacija derivacija*
+    Numerička derivacija kada je ulaz
+    tablica podataka (x, y).
+
+    **Konačne diferencije:**
+    - Forward difference
+    - Backward difference
+    - Central difference (O(h²))
+
+    **Preko aproksimacije:**
+    - Aproksimiraj podatke
+    - Deriviraj aproksimaciju
+
+    *Automatski odabir metode*
     """)
 
-col4, col5, col6 = st.columns(3)
+st.markdown("---")
 
-with col4:
+# Teorija metode najmanjih kvadrata
+st.markdown("""
+### 📐 Metoda Najmanjih Kvadrata
+
+**Princip:** Pronaći funkciju koja najbolje opisuje date podatke minimiziranjem sume kvadrata odstupanja.
+
+$$S = \\sum_{i=1}^{n} [y_i - f(x_i)]^2 \\rightarrow \\min$$
+
+""")
+
+col_t1, col_t2 = st.columns(2)
+
+with col_t1:
     st.markdown("""
-    #### 🔢 Sistemi Jednačina
-    - **Jacobijeva metoda** ✓
-    - **Gauss-Seidelova metoda** ✓
+    #### Linearizacija Nelinearnih Modela
 
-    *Iterativne metode za Ax = b*
+    Mnogi nelinearni modeli se mogu transformisati u linearne:
+
+    | Model | Transformacija |
+    |-------|----------------|
+    | $y = Ax^B$ | $\\ln(y) = \\ln(A) + B\\ln(x)$ |
+    | $y = Ae^{Bx}$ | $\\ln(y) = \\ln(A) + Bx$ |
+    | $y = \\frac{1}{a+bx}$ | $\\frac{1}{y} = a + bx$ |
+    | $y = \\frac{x}{a+bx}$ | $\\frac{x}{y} = a + bx$ |
     """)
 
-with col5:
+with col_t2:
     st.markdown("""
-    #### 📈 Regresija i Aproksimacija
-    - **Linearna regresija** ✓
-    - **Eksponencijalna** ✓
-    - **Polinomijalna** ✓
+    #### Koeficijent Determinacije R²
 
-    *Fitovanje podataka*
+    Mjeri koliko dobro model opisuje podatke:
+
+    $$R^2 = 1 - \\frac{SS_{res}}{SS_{tot}} = 1 - \\frac{\\sum(y_i - \\hat{y}_i)^2}{\\sum(y_i - \\bar{y})^2}$$
+
+    | R² vrijednost | Interpretacija |
+    |---------------|----------------|
+    | ≥ 0.9 | Odličan fit |
+    | 0.7 - 0.9 | Dobar fit |
+    | 0.5 - 0.7 | Umjeren fit |
+    | < 0.5 | Slab fit |
     """)
 
-with col6:
-    st.markdown("""
-    #### 🌍 Primjeri iz Stvarnog Života
-    - **Fizika/Inženjerstvo**
-    - **Biologija/Medicina**
-    - **Ekonomija**
+st.markdown("---")
 
-    *Praktična primjena metoda*
+# Primjeri primjene
+st.markdown("""
+### 🌍 Primjeri Primjene
+
+Numerička aproksimacija se koristi u mnogim oblastima:
+""")
+
+col_p1, col_p2, col_p3 = st.columns(3)
+
+with col_p1:
+    st.markdown("""
+    **Fizika i Inženjerstvo**
+    - Analiza eksperimentalnih podataka
+    - Kalibracija mjernih instrumenata
+    - Predviđanje ponašanja sistema
+    """)
+
+with col_p2:
+    st.markdown("""
+    **Biologija i Medicina**
+    - Rast populacije
+    - Farmakokinetika
+    - Epidemiološki modeli
+    """)
+
+with col_p3:
+    st.markdown("""
+    **Ekonomija i Finansije**
+    - Trendovi tržišta
+    - Prognoziranje prodaje
+    - Analiza vremenskih serija
     """)
 
 st.markdown("---")
@@ -111,11 +186,12 @@ Ova aplikacija je razvijena kao projektni zadatak iz predmeta
 **Primjena Numeričkih Metoda u Softverskom Inženjerstvu**.
 
 #### Karakteristike:
-- 🔬 **Detaljno matematičko objašnjenje** svake metode sa LaTeX formulama
-- 📊 **Interaktivni grafovi** za vizualizaciju (Plotly)
+- 📐 **Metoda najmanjih kvadrata** sa linearizacijom nelinearnih modela
+- 📊 **8 metoda aproksimacije** - linearna i nelinearne
+- 📈 **Interaktivni grafovi** za vizualizaciju (Plotly)
 - 📝 **Step-by-step prikaz** svakog koraka rješavanja
-- 🌍 **Primjeri iz stvarnog života** iz fizike, biologije i ekonomije
-- 🎯 **Poređenje metoda** - brzina konvergencije, preciznost
+- 🏆 **Automatsko poređenje** i rangiranje modela po R²
+- ∫ **Integracija i derivacija** iz tablice podataka
 
 #### Tehnologije:
 - **Python** - programski jezik
@@ -128,10 +204,11 @@ Ova aplikacija je razvijena kao projektni zadatak iz predmeta
 
 ### 🚀 Kako Koristiti
 
-1. **Odaberite kategoriju** iz bočne navigacije (lijeva strana)
-2. **Unesite parametre** (funkciju, interval, toleranciju...)
-3. **Pokrenite izračun** i pratite korake
-4. **Analizirajte rezultate** i grafove
+1. **Odaberite stranicu** iz bočne navigacije (lijeva strana)
+2. **Unesite podatke** (vlastite ili predefinisane primjere)
+3. **Odaberite metodu** aproksimacije
+4. **Pokrenite izračun** i pratite korake
+5. **Analizirajte rezultate** i grafove
 
 """)
 
@@ -140,6 +217,6 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray;'>
     <p>Aplikacija za Numeričku Aproksimaciju | 2024</p>
-    <p>Streamlit + Python + Plotly</p>
+    <p>Streamlit + Python + NumPy + Plotly</p>
 </div>
 """, unsafe_allow_html=True)

@@ -390,10 +390,20 @@ def plot_regression(x_data: np.ndarray, y_data: np.ndarray,
     """
     Graf regresije sa podacima i fitovanom linijom/krivuljom
 
+    Podržava sve metode aproksimacije:
+    - Linearna: y = ax + b
+    - Stepena: y = A*x^B
+    - Eksponencijalna: y = A*e^(Bx)
+    - Logaritamska: y = a + b*ln(x)
+    - Hiperbolička: y = 1/(a + bx)
+    - Racionalna: y = x/(a + bx)
+    - Korijen: y = a + b*sqrt(x)
+    - Polinomijalna: y = a0 + a1*x + a2*x^2 + ...
+
     Args:
         x_data: X podaci
         y_data: Y podaci
-        result: Rezultat regresije
+        result: Rezultat regresije (sadrži 'method' ključ)
         title: Naslov grafa
 
     Returns:
@@ -410,21 +420,70 @@ def plot_regression(x_data: np.ndarray, y_data: np.ndarray,
     ))
 
     # Fitovana linija/krivulja
-    x_fit = np.linspace(min(x_data), max(x_data), 200)
+    # Za logaritamske i korijen funkcije, izbjegavaj x <= 0
+    x_min = max(min(x_data), 0.001) if any(k in result.get('method', '').lower()
+                                            for k in ['logaritam', 'korijen', 'sqrt', 'stepena', 'power']) else min(x_data)
+    x_fit = np.linspace(x_min, max(x_data), 200)
 
-    if 'a' in result and 'b' in result and 'A' not in result:
-        # Linearna regresija
-        y_fit = result['a'] * x_fit + result['b']
-    elif 'A' in result and 'B' in result:
-        # Eksponencijalna
-        y_fit = result['A'] * np.exp(result['B'] * x_fit)
-    elif 'coefficients' in result:
-        # Polinomijalna
-        coeffs = result['coefficients']
-        y_fit = sum(c * x_fit**i for i, c in enumerate(coeffs))
-    else:
-        y_fit = result.get('y_predicted', [])
-        x_fit = x_data
+    method = result.get('method', '').lower()
+
+    try:
+        if 'coefficients' in result:
+            # Polinomijalna
+            coeffs = result['coefficients']
+            y_fit = sum(c * x_fit**i for i, c in enumerate(coeffs))
+
+        elif 'A' in result and 'B' in result:
+            A = result['A']
+            B = result['B']
+            if 'stepena' in method or 'power' in method:
+                # Stepena: y = A*x^B
+                y_fit = A * (x_fit ** B)
+            else:
+                # Eksponencijalna: y = A*e^(Bx)
+                y_fit = A * np.exp(B * x_fit)
+
+        elif 'a' in result and 'b' in result:
+            a = result['a']
+            b = result['b']
+            equation = result.get('equation', '')
+
+            if 'ln(x)' in equation or 'logaritam' in method:
+                # Logaritamska: y = a + b*ln(x)
+                y_fit = a + b * np.log(x_fit)
+            elif '√x' in equation or 'korijen' in method or 'sqrt' in method:
+                # Korijen: y = a + b*sqrt(x)
+                y_fit = a + b * np.sqrt(x_fit)
+            elif '1/(' in equation or 'hiperboli' in method:
+                # Hiperbolička: y = 1/(a + bx)
+                y_fit = 1 / (a + b * x_fit)
+            elif 'x/(' in equation or 'racional' in method:
+                # Racionalna: y = x/(a + bx)
+                y_fit = x_fit / (a + b * x_fit)
+            elif 'e^(' in equation or 'eksponenci' in method:
+                # Eksponencijalna: y = a*e^(bx)
+                y_fit = a * np.exp(b * x_fit)
+            elif 'x^' in equation or 'stepena' in method or 'power' in method:
+                # Stepena: y = a*x^b
+                y_fit = a * (x_fit ** b)
+            else:
+                # Linearna: y = a + bx (a je odsječak, b je nagib)
+                # Kao u regression.py: a = intercept, b = slope
+                y_fit = a + b * x_fit
+
+        else:
+            # Fallback: koristi predviđene vrijednosti ako postoje
+            if 'y_predicted' in result and len(result['y_predicted']) > 0:
+                y_fit = result['y_predicted']
+                x_fit = x_data
+            else:
+                y_fit = y_data
+                x_fit = x_data
+
+    except Exception as e:
+        # Ako dođe do greške, koristi predviđene vrijednosti
+        y_fit = result.get('y_predicted', y_data)
+        x_fit = x_data if len(y_fit) == len(x_data) else np.linspace(min(x_data), max(x_data), len(y_fit))
 
     fig.add_trace(go.Scatter(
         x=x_fit, y=y_fit,

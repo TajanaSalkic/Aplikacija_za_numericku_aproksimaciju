@@ -383,6 +383,266 @@ $$Y = ax + b$$
 """
 
 
+def format_power_regression_formulas() -> str:
+    """
+    Vraća LaTeX objašnjenje formula za stepenu aproksimaciju
+
+    Returns:
+        LaTeX string
+    """
+    return """
+## Stepena Aproksimacija
+
+### Model:
+$$y = A \\cdot x^B$$
+
+### Linearizacija:
+Logaritmovanjem obje strane:
+$$\\ln(y) = \\ln(A) + B \\cdot \\ln(x)$$
+
+Supstitucija: $Y = \\ln(y)$, $X = \\ln(x)$, $a = B$, $b = \\ln(A)$
+
+Linearni model:
+$$Y = aX + b$$
+
+### Procedura:
+1. Transformiši: $X_i = \\ln(x_i)$, $Y_i = \\ln(y_i)$
+2. Primijeni linearnu regresiju na $(X_i, Y_i)$
+3. Izračunaj: $B = a$, $A = e^b$
+
+### Napomena:
+- Sve $x$ i $y$ vrijednosti moraju biti **pozitivne**!
+
+### Primjene:
+- Keplerovi zakoni planetarnog kretanja
+- Veza veličine i metabolizma kod životinja
+- Fizički zakoni proporcionalnosti
+"""
+
+
+def format_logarithmic_regression_formulas() -> str:
+    """
+    Vraća LaTeX objašnjenje formula za logaritamsku aproksimaciju
+
+    Returns:
+        LaTeX string
+    """
+    return """
+## Logaritamska Aproksimacija
+
+### Model:
+$$y = a + b \\cdot \\ln(x)$$
+
+### Linearizacija:
+Model je već u linearnom obliku!
+
+Supstitucija: $X = \\ln(x)$
+
+Linearni model:
+$$y = a + bX$$
+
+### Procedura:
+1. Transformiši: $X_i = \\ln(x_i)$
+2. Primijeni linearnu regresiju na $(X_i, y_i)$
+3. Koeficijenti $a$ i $b$ su direktno iz regresije
+
+### Napomena:
+- Sve $x$ vrijednosti moraju biti **pozitivne**!
+
+### Primjene:
+- Psihofizički zakoni (Weber-Fechner)
+- Logaritamske skale (pH, decibeli)
+- Saturacijske krive
+"""
+
+
+def format_hyperbolic_regression_formulas() -> str:
+    """
+    Vraća LaTeX objašnjenje formula za hiperboličku aproksimaciju
+
+    Returns:
+        LaTeX string
+    """
+    return """
+## Hiperbolička Aproksimacija
+
+### Model:
+$$y = \\frac{1}{a + bx}$$
+
+### Linearizacija:
+Recipročna vrijednost:
+$$\\frac{1}{y} = a + bx$$
+
+Supstitucija: $Y = \\frac{1}{y}$
+
+Linearni model:
+$$Y = a + bx$$
+
+### Procedura:
+1. Transformiši: $Y_i = \\frac{1}{y_i}$
+2. Primijeni linearnu regresiju na $(x_i, Y_i)$
+3. Koeficijenti $a$ i $b$ su direktno iz regresije
+
+### Napomena:
+- $y$ vrijednosti ne smiju biti **nula**!
+
+### Primjene:
+- Michaelis-Menten kinetika enzima
+- Odziv sistema sa zasićenjem
+"""
+
+
+def format_rational_regression_formulas() -> str:
+    """
+    Vraća LaTeX objašnjenje formula za racionalnu aproksimaciju
+
+    Returns:
+        LaTeX string
+    """
+    return """
+## Racionalna Aproksimacija
+
+### Model:
+$$y = \\frac{x}{a + bx}$$
+
+### Linearizacija:
+Dijeljenjem sa $y$ i množenjem sa $x$:
+$$\\frac{x}{y} = a + bx$$
+
+Supstitucija: $Y = \\frac{x}{y}$
+
+Linearni model:
+$$Y = a + bx$$
+
+### Procedura:
+1. Transformiši: $Y_i = \\frac{x_i}{y_i}$
+2. Primijeni linearnu regresiju na $(x_i, Y_i)$
+3. Koeficijenti $a$ i $b$ su direktno iz regresije
+
+### Napomena:
+- $y$ vrijednosti ne smiju biti **nula**!
+
+### Primjene:
+- Langmuir adsorpcija
+- Zasićenje kapaciteta
+- Procesna kinetika
+"""
+
+
+def format_sqrt_regression_formulas() -> str:
+    """
+    Vraća LaTeX objašnjenje formula za aproksimaciju kvadratnim korijenom
+
+    Returns:
+        LaTeX string
+    """
+    return """
+## Aproksimacija Kvadratnim Korijenom
+
+### Model:
+$$y = a + b \\cdot \\sqrt{x}$$
+
+### Linearizacija:
+Model je već u linearnom obliku!
+
+Supstitucija: $X = \\sqrt{x}$
+
+Linearni model:
+$$y = a + bX$$
+
+### Procedura:
+1. Transformiši: $X_i = \\sqrt{x_i}$
+2. Primijeni linearnu regresiju na $(X_i, y_i)$
+3. Koeficijenti $a$ i $b$ su direktno iz regresije
+
+### Napomena:
+- Sve $x$ vrijednosti moraju biti **nenegativne** ($x \\geq 0$)!
+
+### Primjene:
+- Fizički procesi sa korijenom
+- Vrijeme reakcije
+- Difuzijski procesi
+"""
+
+
+def format_polynomial_regression_formulas(degree: int = 2) -> str:
+    """
+    Vraća LaTeX objašnjenje formula za polinomijalnu aproksimaciju
+
+    Args:
+        degree: Stepen polinoma
+
+    Returns:
+        LaTeX string
+    """
+    return f"""
+## Polinomijalna Aproksimacija (stepen {degree})
+
+### Model:
+$$y = a_0 + a_1 x + a_2 x^2 + ... + a_n x^n$$
+
+### Metoda Najmanjih Kvadrata:
+Cilj: Minimizirati $S = \\sum(y_i - p(x_i))^2$
+
+U matričnom obliku:
+$$\\mathbf{{X}}^T \\mathbf{{X}} \\cdot \\mathbf{{a}} = \\mathbf{{X}}^T \\mathbf{{y}}$$
+
+gdje je $\\mathbf{{X}}$ **Vandermondova matrica**:
+$$\\mathbf{{X}} = \\begin{{bmatrix}} 1 & x_1 & x_1^2 & \\cdots & x_1^n \\\\ 1 & x_2 & x_2^2 & \\cdots & x_2^n \\\\ \\vdots & \\vdots & \\vdots & \\ddots & \\vdots \\\\ 1 & x_m & x_m^2 & \\cdots & x_m^n \\end{{bmatrix}}$$
+
+### Rješenje:
+$$\\mathbf{{a}} = (\\mathbf{{X}}^T \\mathbf{{X}})^{{-1}} \\mathbf{{X}}^T \\mathbf{{y}}$$
+
+### Upozorenje - Overfitting:
+- Visoki stepen polinoma može dovesti do "overfittinga"
+- Model savršeno prolazi kroz tačke, ali loše predviđa
+- **Pravilo**: stepen << broj tačaka
+
+### Adjusted $R^2$:
+$$R^2_{{adj}} = 1 - (1-R^2)\\frac{{n-1}}{{n-p-1}}$$
+
+gdje je $p$ broj parametara (stepen + 1).
+"""
+
+
+def format_all_approximation_methods() -> str:
+    """
+    Vraća LaTeX pregled svih metoda aproksimacije
+
+    Returns:
+        LaTeX string
+    """
+    return """
+## Pregled Metoda Aproksimacije
+
+### Linearne vs Nelinearne Aproksimacije
+
+**Linearna aproksimacija** (direktna primjena metode najmanjih kvadrata):
+- $y = ax + b$
+
+**Nelinearne aproksimacije** (zahtijevaju linearizaciju):
+
+| Model | Linearizacija | Transformirane varijable |
+|-------|---------------|--------------------------|
+| $y = Ax^B$ | $\\ln(y) = \\ln(A) + B\\ln(x)$ | $Y = \\ln(y), X = \\ln(x)$ |
+| $y = Ae^{Bx}$ | $\\ln(y) = \\ln(A) + Bx$ | $Y = \\ln(y)$ |
+| $y = a + b\\ln(x)$ | Već linearno | $X = \\ln(x)$ |
+| $y = \\frac{1}{a+bx}$ | $\\frac{1}{y} = a + bx$ | $Y = \\frac{1}{y}$ |
+| $y = \\frac{x}{a+bx}$ | $\\frac{x}{y} = a + bx$ | $Y = \\frac{x}{y}$ |
+| $y = a + b\\sqrt{x}$ | Već linearno | $X = \\sqrt{x}$ |
+
+### Postupak Linearizacije:
+1. Transformiši podatke prema formuli
+2. Primijeni linearnu regresiju na transformirane podatke
+3. Izračunaj originalne parametre iz dobijenih koeficijenata
+
+### Odabir Metode:
+- Koristite **poređenje modela** za automatski odabir najboljeg modela
+- Najveći $R^2$ ukazuje na najbolji fit
+- Razmotrite i fizički/logički smisao modela
+"""
+
+
 def create_matrix_latex(A: np.ndarray, name: str = "A") -> str:
     """
     Kreira LaTeX prikaz matrice
