@@ -36,7 +36,7 @@ st.sidebar.header("⚙️ Postavke")
 
 # Izbor metode
 approximation_methods = {
-    "Metoda najmanjeg kvadrata": {
+    "Linearna regresija": {
         "function": linear_regression,
         "model": "y = ax + b",
         "description": "Metoda najmanjih kvadrata za linearni model",
@@ -112,7 +112,7 @@ data_input_method = st.sidebar.radio(
 
 # Predefinisani dataseti za različite tipove aproksimacije
 predefined_datasets = {
-    "Metoda najmanjih kvadrata": {
+    "Relativna gustina zraka ρ": {
         "x": [0, 1.525, 3.050, 4.575, 6.10, 7.625, 9.150],
         "y": [1.0, 0.8617, 0.7385, 0.6292, 0.5328, 0.4481, 0.3741],
         "description": "Relativna gustina zraka ρ u funkciji visine h.",
@@ -124,8 +124,36 @@ predefined_datasets = {
             "- ρ: 1.0000, 0.8617, 0.7385, 0.6292, 0.5328, 0.4481, 0.3741\n\n"
             "**Zadatak:** Uraditi kvadratnu aproksimaciju metodom najmanjih kvadrata (polinom stepena 2) i odrediti ρ na **h = 10.5 km**."
         ),
-        "suggested": "Metoda najmanjih kvadrata",
+        "suggested": "Polinomijalna aproksimacija",
         "solution_link": "https://www.scribd.com/document/968215224/NM-Chapter-4"
+    },
+     "Potrošnja goriva": {
+        "x": [1310, 1810, 1175, 2360, 1960, 2020, 1755, 1595, 1470, 1430, 1110, 1785],
+        "y": [10.2, 8.1, 11.9, 5.5, 6.8, 6.8, 7.7, 8.9, 9.8, 10.2, 13.2, 7.7],
+        "description": "Potrošnja goriva φ (km/litar) u funkciji mase vozila M (kg) za Ford i Honda vozila iz 1999. godine.",
+        "task_text": (
+            "*Relativna gustina zraka po visini*\n\n"
+            "**ZADATAK (postavka):** "
+            "Tabela prikazuje masu vozila M (1310, 1810, 1175, 2360, 1960, 2020, 1755, 1595, 1470, 1430, 1110, 1785) i prosječnu potrošnju goriva φ (km/litar):10.2, 8.1, 11.9, 5.5, 6.8, 6.8, 7.7, 8.9, 9.8, 10.2, 13.2, 7.7, za motorna vozila marke Ford i Honda proizvedena 1999. godine. Potrebno je fitovati (aproksimirati) podatke pravom:  = a + bM i izračunati standardnu devijaciju (standardnu grešku aproksimacije)**."
+        ),
+        "suggested": "Linearna regresija (metoda najmanjih kvadrata)",
+        "solution_link": ""
+    },
+    "Kinematička viskoznost vode μk(T)": {
+        "x": [0, 21.1, 37.8, 54.4, 71.1, 87.8, 100],
+        "y": [1.79, 1.13, 0.696, 0.519, 0.338, 0.321, 0.296],
+        "description": "Kinematička viskoznost vode μk (10^-3 m^2/s) u funkciji temperature T (°C).",
+        "task_text": (
+            "*4.3. Kinematička viskoznost vode u funkciji temperature*\n\n"
+            "**ZADATAK (postavka):** Kinematička viskoznost vode μk mijenja se s temperaturom T kako je dato u tabeli.\n\n"
+            "**Podaci:**\n"
+            "- T (°C): 0, 21.1, 37.8, 54.4, 71.1, 87.8, 100\n"
+            "- μk (10^-3 m²/s): 1.79, 1.13, 0.696, 0.519, 0.338, 0.321, 0.296\n\n"
+            "**Zadatak:** Odrediti **kubni polinom** (polinom 3. stepena) koji najbolje aproksimira podatke metodom najmanjih kvadrata,\n"
+            "i pomoću njega izračunati μk za **T = 10°C, 30°C, 60°C, 90°C**."
+    ),
+    "suggested": "Polinomijalna aproksimacija (stepen 3)",
+    "solution_link": ""
     },
     "Eksponencijalni rast": {
         'x': [0, 1, 2, 3, 4, 5],
@@ -302,7 +330,9 @@ st.markdown("---")
 if data_input_method == "Predefinisani primjer" and task_text:
     st.subheader("🧾 Postavka zadatka")
     st.markdown(task_text)
-    st.markdown(f"🔗 [Rješenje zadatka (link)]({dataset['solution_link']})")
+    solution_link = dataset.get("solution_link", "").strip()
+    if solution_link:
+        st.markdown(f"🔗 [Rješenje zadatka (link)]({solution_link})")
     st.markdown("---")
 
 # Prikaz informacija o metodi

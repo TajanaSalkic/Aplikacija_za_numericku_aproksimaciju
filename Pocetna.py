@@ -35,64 +35,35 @@ Koristite **bočnu navigaciju** za pristup pojedinim stranicama:
 
 """)
 
-# Kartice sa metodama
-col1, col2, col3 = st.columns(3)
+# Kartice sa metodama aproksimacije
+st.markdown("""
+#### 📊 Aproksimacija Funkcija — Metoda Najmanjih Kvadrata
+
+Centralna funkcionalnost aplikacije. Implementirano je **6 metoda aproksimacije** podataka:
+""")
+
+col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("""
-    #### 📊 Aproksimacija Funkcija
-    **Metoda Najmanjih Kvadrata**
-
-    *Linearna aproksimacija:*
+    **Linearna aproksimacija:**
     - Linearna regresija (y = ax + b)
 
-    *Nelinearne aproksimacije:*
+    **Nelinearne aproksimacije:**
     - Stepena (y = Ax^B)
     - Eksponencijalna (y = Ae^Bx)
     - Logaritamska (y = a + b·ln(x))
-    - Racionalna (y = x/(a+bx))
-    - Polinomijalna (stepen n)
-
-    *Automatsko poređenje svih modela*
     """)
 
 with col2:
     st.markdown("""
-    #### ∫ Integracija iz Tablice
+    **Nelinearne aproksimacije (nastavak):**
+    - Racionalna (y = P(x)/Q(x))
+    - Polinomijalna (stepen n)
 
-    Numerička integracija kada je ulaz
-    tablica podataka (x, y).
-
-    **Direktna integracija:**
-    - Trapezna metoda
-    - Simpsonova metoda
-    - Kubna interpolacija
-
-    **Preko aproksimacije:**
-    - Aproksimiraj podatke
-    - Integriraj aproksimaciju
-
-    *Koristi se kada nemamo
-    eksplicitnu funkciju*
-    """)
-
-with col3:
-    st.markdown("""
-    #### ∂ Derivacija iz Tablice
-
-    Numerička derivacija kada je ulaz
-    tablica podataka (x, y).
-
-    **Konačne diferencije:**
-    - Forward difference
-    - Backward difference
-    - Central difference (O(h²))
-
-    **Preko aproksimacije:**
-    - Aproksimiraj podatke
-    - Deriviraj aproksimaciju
-
-    *Automatski odabir metode*
+    **Automatsko poređenje:**
+    - Rangiranje svih modela po R²
+    - Preporuka najboljeg modela
     """)
 
 st.markdown("---")
@@ -177,6 +148,47 @@ st.markdown("---")
 
 # Informacije o projektu
 st.markdown("""
+### ∫∂ Primjena Aproksimacije u Drugim Numeričkim Metodama
+
+Pored same aproksimacije, aplikacija demonstrira kako se metode aproksimacije mogu
+koristiti kao temelj za rješavanje drugih numeričkih problema. Kada nemamo eksplicitnu
+funkciju f(x), već samo tablicu izmjerenih vrijednosti (x, y), aproksimacija nam omogućava
+da rekonstruišemo funkciju i primijenimo je dalje.
+""")
+
+col_id1, col_id2 = st.columns(2)
+
+with col_id1:
+    st.markdown("""
+    #### ∫ Integracija iz Tablice
+
+    Izračunavanje integrala iz diskretnih podataka
+    koristeći aproksimiranu funkciju:
+
+    1. Aproksimiraj podatke odabranom metodom
+    2. Integriraj dobijenu funkciju numerički
+
+    *Primjer: Iz tablice brzina vozila
+    izračunaj ukupan pređeni put.*
+    """)
+
+with col_id2:
+    st.markdown("""
+    #### ∂ Derivacija iz Tablice
+
+    Izračunavanje derivacije iz diskretnih podataka
+    koristeći aproksimiranu funkciju:
+
+    1. Aproksimiraj podatke odabranom metodom
+    2. Deriviraj dobijenu funkciju analitički
+
+    *Primjer: Iz tablice temperature tokom
+    vremena odredi brzinu hlađenja.*
+    """)
+
+st.markdown("---")
+
+st.markdown("""
 ### ℹ️ O Aplikaciji
 
 Ova aplikacija je razvijena kao projektni zadatak iz predmeta
@@ -184,18 +196,11 @@ Ova aplikacija je razvijena kao projektni zadatak iz predmeta
 
 #### Karakteristike:
 - 📐 **Metoda najmanjih kvadrata** sa linearizacijom nelinearnih modela
-- 📊 **6 metoda aproksimacije** - linearna i nelinearne
+- 📊 **6 metoda aproksimacije** — linearna i nelinearne
 - 📈 **Interaktivni grafovi** za vizualizaciju (Plotly)
 - 📝 **Step-by-step prikaz** svakog koraka rješavanja
 - 🏆 **Automatsko poređenje** i rangiranje modela po R²
-- ∫ **Integracija i derivacija** iz tablice podataka
-
-#### Tehnologije:
-- **Python** - programski jezik
-- **Streamlit** - web framework
-- **NumPy/SciPy** - numeričke kalkulacije
-- **Plotly** - interaktivni grafovi
-- **SymPy** - simboličko računanje
+- ∫∂ **Integracija i derivacija** kao primjena aproksimacije
 
 ---
 

@@ -18,6 +18,39 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from methods.regression import (linear_regression, polynomial_regression,
                                  exponential_regression, power_regression,
                                  logarithmic_regression, compare_regression_models)
+from methods.differentiation import auto_differentiate
+
+
+def build_approx_function(result):
+    """Kreira callable funkciju iz rezultata regresije."""
+    equation = result.get('equation', '')
+    if 'c_rest' in result:
+        b_coeffs = result['b']
+        c_rest = result['c_rest']
+        def f(x):
+            P = sum(b_coeffs[k] * x**k for k in range(len(b_coeffs)))
+            Q = 1.0 + sum(c_rest[k] * x**(k+1) for k in range(len(c_rest)))
+            return P / Q if abs(Q) > 1e-12 else P / 1e-12
+        return f
+    if 'coefficients' in result and 'ln(x)' not in equation:
+        coeffs = result['coefficients']
+        def f(x):
+            return sum(c * x**i for i, c in enumerate(coeffs))
+        return f
+    if 'A' in result and 'B' in result:
+        A, B = result['A'], result['B']
+        if 'e^' in equation:
+            return lambda x: A * np.exp(B * x)
+        else:
+            return lambda x: A * (x ** B)
+    if 'a' in result and 'b' in result:
+        a, b = result['a'], result['b']
+        if 'ln(x)' in equation:
+            return lambda x: a + b * np.log(x)
+        else:
+            return lambda x: a * x + b
+    return None
+
 
 st.set_page_config(page_title="Derivacija iz Tablice", page_icon="∂", layout="wide")
 
@@ -36,6 +69,10 @@ approx_method = st.sidebar.selectbox(
     "Metoda aproksimacije:",
     ["Linearna", "Kvadratna (polinom 2. stepena)", "Kubna (polinom 3. stepena)",
      "Eksponencijalna", "Stepena", "Logaritamska", "Automatski (najbolji R²)"]
+)
+
+h_value = st.sidebar.number_input(
+    "Korak h:", min_value=0.0001, max_value=10.0, value=0.001, format="%.4f"
 )
 
 # Unos podataka
@@ -186,91 +223,39 @@ if run_button:
     # Derivacija aproksimirane funkcije
     st.subheader("2. Derivacija Aproksimirane Funkcije")
 
-    # Kreiraj derivaciju na osnovu tipa aproksimacije
-    x_fine = np.linspace(x_data[0], x_data[-1], 200)
-    y_approx_fine = []
-    dy_approx_fine = []
-    derivative_equation = ""
+    approx_func = build_approx_function(approx_result)
+    if approx_func is None:
+        st.error("Nije moguće kreirati funkciju iz rezultata aproksimacije!")
+        st.stop()
 
-    if 'a' in approx_result and 'b' in approx_result and 'A' not in approx_result:
-        if 'coefficients' not in approx_result:
-            # Linearna: y = ax + b -> y' = a
-            a = approx_result['a']
-            b = approx_result['b']
-            y_approx_fine = a * x_fine + b
-            dy_approx_fine = np.full_like(x_fine, a)
-            derivative_equation = f"y' = {a:.6f} (konstanta)"
-        else:
-            # Za logaritamsku i sl.
-            if 'ln(x)' in approx_result.get('equation', ''):
-                # y = a + b*ln(x) -> y' = b/x
-                a = approx_result['a']
-                b = approx_result['b']
-                y_approx_fine = a + b * np.log(x_fine)
-                dy_approx_fine = b / x_fine
-                derivative_equation = f"y' = {b:.6f}/x"
-
-    elif 'A' in approx_result and 'B' in approx_result:
-        A = approx_result['A']
-        B = approx_result['B']
-
-        if 'e^' in approx_result.get('equation', ''):
-            # Eksponencijalna: y = A*e^(Bx) -> y' = A*B*e^(Bx)
-            y_approx_fine = A * np.exp(B * x_fine)
-            dy_approx_fine = A * B * np.exp(B * x_fine)
-            derivative_equation = f"y' = {A*B:.6f}·e^({B:.6f}x)"
-        else:
-            # Stepena: y = A*x^B -> y' = A*B*x^(B-1)
-            y_approx_fine = A * (x_fine ** B)
-            dy_approx_fine = A * B * (x_fine ** (B - 1))
-            derivative_equation = f"y' = {A*B:.6f}·x^{B-1:.6f}"
-
-    elif 'coefficients' in approx_result:
-        # Polinomijalna
-        coeffs = approx_result['coefficients']
-        degree = len(coeffs) - 1
-
-        # y = a0 + a1*x + a2*x^2 + ...
-        y_approx_fine = np.polyval(coeffs[::-1], x_fine)
-
-        # y' = a1 + 2*a2*x + 3*a3*x^2 + ...
-        deriv_coeffs = [i * coeffs[i] for i in range(1, len(coeffs))]
-        if deriv_coeffs:
-            dy_approx_fine = np.polyval(deriv_coeffs[::-1], x_fine)
-        else:
-            dy_approx_fine = np.zeros_like(x_fine)
-
-        # Formatiraj jednačinu derivacije
-        terms = []
-        for i, c in enumerate(deriv_coeffs):
-            if abs(c) > 1e-10:
-                if i == 0:
-                    terms.append(f"{c:.4f}")
-                elif i == 1:
-                    terms.append(f"{c:.4f}x")
-                else:
-                    terms.append(f"{c:.4f}x^{i}")
-        derivative_equation = "y' = " + " + ".join(terms) if terms else "y' = 0"
-
-    # Za racionalnu - numerička derivacija
-    if len(dy_approx_fine) == 0:
-        y_pred = np.array(approx_result['y_predicted'])
-        from scipy.interpolate import interp1d
-        interp_func = interp1d(x_data, y_pred, kind='cubic', fill_value='extrapolate')
-        y_approx_fine = interp_func(x_fine)
-
-        # Numerička derivacija
-        h = x_fine[1] - x_fine[0]
-        dy_approx_fine = np.gradient(y_approx_fine, h)
-        derivative_equation = "y' (numerički izračunata)"
-
-    st.success(f"**Derivacija:** {derivative_equation}")
-
-    # Vrijednosti derivacije u tačkama podataka
+    # Automatska derivacija - bira Forward/Backward/Central ovisno o položaju tačke
+    domain = (float(x_data[0]), float(x_data[-1]))
     deriv_at_points = []
+    deriv_details = []
     for xi in x_data:
-        idx = np.argmin(np.abs(x_fine - xi))
-        deriv_at_points.append(dy_approx_fine[idx])
+        auto_res = auto_differentiate(f=approx_func, x=float(xi), h=h_value, domain=domain)
+        d_info = auto_res['derivatives'][0]
+        deriv_at_points.append(d_info['derivative'])
+        deriv_details.append(d_info)
+
+    st.success(f"**Automatska detekcija metode** | **h = {h_value}**")
+
+    # Prikaz detalja derivacije po tačkama
+    with st.expander("📝 Detalji derivacije po tačkama", expanded=False):
+        for d_info in deriv_details:
+            st.markdown(f"**x = {d_info['x']:.4f}** → {d_info['method']}")
+            st.markdown(f"Razlog: _{d_info['reason']}_")
+            st.markdown(f"Formula: `{d_info['formula']}`")
+            st.markdown(f"**f'({d_info['x']:.4f}) = {d_info['derivative']:.10f}**")
+            st.markdown("---")
+
+    # Fina mreža za vizualizaciju
+    x_fine = np.linspace(float(x_data[0]), float(x_data[-1]), 200)
+    y_approx_fine = np.array([approx_func(xi) for xi in x_fine])
+    dy_approx_fine = np.array([
+        auto_differentiate(f=approx_func, x=float(xi), h=h_value, domain=domain)['derivatives'][0]['derivative']
+        for xi in x_fine
+    ])
 
     # Tabela rezultata
     st.subheader("📋 Derivacija u Tačkama")

@@ -18,6 +18,39 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from methods.regression import (linear_regression, polynomial_regression,
                                  exponential_regression, power_regression,
                                  logarithmic_regression, compare_regression_models)
+from methods.integration import trapezoidal, simpson
+
+
+def build_approx_function(result):
+    """Kreira callable funkciju iz rezultata regresije."""
+    equation = result.get('equation', '')
+    if 'c_rest' in result:
+        b_coeffs = result['b']
+        c_rest = result['c_rest']
+        def f(x):
+            P = sum(b_coeffs[k] * x**k for k in range(len(b_coeffs)))
+            Q = 1.0 + sum(c_rest[k] * x**(k+1) for k in range(len(c_rest)))
+            return P / Q if abs(Q) > 1e-12 else P / 1e-12
+        return f
+    if 'coefficients' in result and 'ln(x)' not in equation:
+        coeffs = result['coefficients']
+        def f(x):
+            return sum(c * x**i for i, c in enumerate(coeffs))
+        return f
+    if 'A' in result and 'B' in result:
+        A, B = result['A'], result['B']
+        if 'e^' in equation:
+            return lambda x: A * np.exp(B * x)
+        else:
+            return lambda x: A * (x ** B)
+    if 'a' in result and 'b' in result:
+        a, b = result['a'], result['b']
+        if 'ln(x)' in equation:
+            return lambda x: a + b * np.log(x)
+        else:
+            return lambda x: a * x + b
+    return None
+
 
 st.set_page_config(page_title="Integracija iz Tablice", page_icon="∫", layout="wide")
 
@@ -36,6 +69,15 @@ approx_method = st.sidebar.selectbox(
     "Metoda aproksimacije:",
     ["Linearna", "Kvadratna (polinom 2. stepena)", "Kubna (polinom 3. stepena)",
      "Eksponencijalna", "Stepena", "Logaritamska", "Automatski (najbolji R²)"]
+)
+
+integration_method = st.sidebar.selectbox(
+    "Metoda integracije:",
+    ["Trapezna metoda", "Simpsonova metoda"]
+)
+
+n_intervals = st.sidebar.number_input(
+    "Broj podintervala (n):", min_value=2, max_value=1000, value=10, step=2
 )
 
 # Unos podataka
@@ -192,19 +234,41 @@ if run_button:
     # Integracija aproksimirane funkcije
     st.subheader("2. Integracija Aproksimirane Funkcije")
 
-    # Kreiraj finu mrežu za integraciju
-    x_fine = np.linspace(x_data[0], x_data[-1], 1000)
-    y_approx = np.array(approx_result['y_predicted'])
+    # Kreiranje callable funkcije iz rezultata aproksimacije
+    approx_func = build_approx_function(approx_result)
+    if approx_func is None:
+        st.error("Nije moguće kreirati funkciju iz rezultata aproksimacije!")
+        st.stop()
 
-    # Interpoliraj predviđene vrijednosti na finu mrežu
-    from scipy.interpolate import interp1d
-    interp_func = interp1d(x_data, y_approx, kind='linear', fill_value='extrapolate')
-    y_fine = interp_func(x_fine)
+    a_int, b_int = float(x_data[0]), float(x_data[-1])
 
-    # Trapezna integracija na finoj mreži
-    integral_value = np.trapezoid(y_fine, x_fine)
+    # Poziv implementirane metode integracije
+    if integration_method == "Trapezna metoda":
+        int_result = trapezoidal(approx_func, a_int, b_int, n_intervals)
+    else:
+        int_result = simpson(approx_func, a_int, b_int, n_intervals)
 
-    st.success(f"**Integral aproksimirane funkcije: I ≈ {integral_value:.6f}**")
+    integral_value = int_result['integral']
+
+    st.success(f"**{int_result['method']} (n={int_result['n']}): I ≈ {integral_value:.6f}**")
+
+    # Prikaz koraka integracije
+    with st.expander("📝 Koraci integracije", expanded=False):
+        for step in int_result['steps']:
+            st.markdown(f"**Korak {step['step']}: {step['title']}**")
+            if 'formula' in step:
+                st.markdown(f"Formula: `{step['formula']}`")
+            if 'calculation' in step:
+                st.markdown(f"Računanje: `{step['calculation']}`")
+            if 'description' in step:
+                st.markdown(f"_{step['description']}_")
+            if 'result' in step:
+                st.markdown(f"**Rezultat: {step['result']:.6f}**")
+            st.markdown("---")
+
+    # Fina mreža za vizualizaciju
+    x_fine = np.linspace(a_int, b_int, 1000)
+    y_fine = np.array([approx_func(xi) for xi in x_fine])
 
     # Vizualizacija
     with col2:
