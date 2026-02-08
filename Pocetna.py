@@ -218,7 +218,7 @@ Ova aplikacija je razvijena kao projektni zadatak iz predmeta
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray;'>
-    <p>Aplikacija za Numeričku Aproksimaciju | 2024</p>
+    <p>Aplikacija za Numeričku Aproksimaciju | 2026</p>
     <p>Streamlit + Python + NumPy + Plotly</p>
 </div>
 """, unsafe_allow_html=True)

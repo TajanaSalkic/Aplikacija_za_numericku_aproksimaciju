@@ -93,6 +93,10 @@ if data_source == "Vlastiti unos":
         st.error("Greška pri parsiranju podataka!")
         st.stop()
 
+    if len(x_data) != len(y_data):
+        st.error(f"Broj X vrijednosti ({len(x_data)}) i Y vrijednosti ({len(y_data)}) mora biti isti!")
+        st.stop()
+
 else:  # Učitaj iz datoteke
     st.sidebar.info("Podržani formati: CSV, Excel, TXT")
 

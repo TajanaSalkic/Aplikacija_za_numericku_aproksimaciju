@@ -494,6 +494,7 @@ if run_button:
                 st.markdown("**Koeficijenti:**")
                 for i, c in enumerate(result['coefficients']):
                     st.markdown(f"$a_{i}$ = {c:.6f}")
+            elif 'c0' in result:
                 st.markdown(f"**c0** = {result['c0']:.6f}")
                 for i, val in enumerate(result['c_rest'], start=1):
                     st.markdown(f"**c{i}** = {val:.6f}")
